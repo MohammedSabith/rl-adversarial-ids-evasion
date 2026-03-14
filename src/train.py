@@ -6,6 +6,7 @@ Uses Stable-Baselines3 PPO with DummyVecEnv (faster than SubprocVecEnv for cheap
 
 import os
 import sys
+from collections import Counter
 import numpy as np
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
@@ -190,7 +191,6 @@ if __name__ == '__main__':
         acts = result['step_actions'][step]
         if not acts:
             continue
-        from collections import Counter
         counts = Counter(acts)
         top3 = counts.most_common(3)
         top_str = ', '.join(

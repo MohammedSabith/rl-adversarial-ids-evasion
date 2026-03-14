@@ -66,7 +66,6 @@ Genetic algorithms and Bayesian optimization optimize per-flow. **RL learns a tr
 ### Prerequisites
 
 - Python 3.9+
-- The [Western-OC2-Lab classifier](https://github.com/Western-OC2-Lab/Intrusion-Detection-System-Using-Machine-Learning) (cloned separately for training data)
 
 ### Setup
 
@@ -88,12 +87,6 @@ python -m src.train
 python -m src.baselines
 ```
 
-### Generate Visualizations
-
-```bash
-python -m src.visualize
-```
-
 ## Project Structure
 
 ```
@@ -105,7 +98,9 @@ python -m src.visualize
 │   ├── rf_classifier.joblib        # Reproduced Western-OC2-Lab RF model
 │   ├── ppo_evasion.zip             # Trained PPO agent
 │   ├── malicious_flows.npy         # Malicious flow pool (CICIDS2017)
-│   └── feature_names.npy           # 77 CICFlowMeter feature names
+│   ├── feature_names.npy           # 77 CICFlowMeter feature names
+│   ├── label_encoder.joblib        # Attack type label encoder
+│   └── training_metrics.npy        # PPO training metrics (eval checkpoints)
 ├── results/figures/                 # Visualizations (5 charts)
 └── requirements.txt
 ```
@@ -117,10 +112,6 @@ python -m src.visualize
 3. Evasion tested against `predict_proba`, not real network deployment
 4. Results are specific to CICIDS2017 and this classifier architecture
 5. Small sample sizes for Bot (n=65) and WebAttack (n=20)
-
-## What's Next
-
-**Phase 2: Multi-Agent Adversarial Training** — two RL agents in adversarial self-play (attacker vs. defender), producing emergent strategies that neither was explicitly programmed to use.
 
 ## Credits
 

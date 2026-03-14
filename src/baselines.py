@@ -11,18 +11,19 @@ from itertools import product
 from src.western_oc2_environment import WesternOC2EvasionEnv, ACTION_DEFS, I, BENIGN_CLASS
 
 
-def random_baseline(n_flows=1000, attempts_per_flow=1, seed=0):
+def random_baseline(n_flows=1000, attempts_per_flow=1, max_steps=5, seed=0):
     """Evaluate random uniform action selection.
 
     Args:
         n_flows: number of malicious flows to test
         attempts_per_flow: how many random 5-step sequences to try per flow
             1 = fair comparison with RL (single attempt)
+        max_steps: max steps per episode (default 5, matches RL agent)
 
     Returns:
         dict with evasion rate and per-flow results
     """
-    env = WesternOC2EvasionEnv()
+    env = WesternOC2EvasionEnv(max_steps=max_steps)
     evaded_count = 0
     results = []
 
@@ -37,7 +38,7 @@ def random_baseline(n_flows=1000, attempts_per_flow=1, seed=0):
                 original_flow = env.current_flow.copy()
             else:
                 env.current_flow = original_flow.copy()
-                state = original_flow.astype(np.float32)
+                state = env._normalize(original_flow)
 
             done = False
             while not done:
