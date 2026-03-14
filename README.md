@@ -23,7 +23,7 @@ The classifier's 99.41% accuracy hides attack-specific blind spots:
 | Attack Type | Evasion Rate | Flows | Interpretation |
 |-------------|-------------|-------|----------------|
 | Bot C&C | **92.3%** | 65 | Small C&C flows reshaped to look like browsing |
-| WebAttack | **80.0%** | 20 | Small HTTP requests mimicking normal traffic |
+| WebAttack | **80.0%** | 20 | Payloads split into many smaller packets |
 | BruteForce | **56.0%** | 100 | Login attempts padded and coalesced |
 | DoS | **1.1%** | 812 | Large flows can't be reshaped enough |
 
