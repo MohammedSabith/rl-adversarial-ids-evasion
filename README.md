@@ -27,7 +27,7 @@ The classifier's 99.41% accuracy hides attack-specific blind spots:
 | BruteForce | **56.0%** | 100 | Login attempts padded and coalesced |
 | DoS | **1.1%** | 812 | Large flows can't be reshaped enough |
 
-DoS is nearly unbreakable. Bot and BruteForce are highly vulnerable. A single accuracy number doesn't tell you this.
+DoS is nearly unbreakable. Bot and WebAttack are highly vulnerable. A single accuracy number doesn't tell you this.
 
 ## How It Works
 
