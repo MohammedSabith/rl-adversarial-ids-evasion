@@ -49,8 +49,10 @@ The agent only controls 3 of 77 features. The other 74 (server responses, flags,
 
 The agent learned **different strategies for different attack types** — not a single universal approach:
 
-- **BruteForce/WebAttack:** increase bytes + reduce packets = fewer, larger packets mimicking web traffic
-- **Bot C&C:** increase packets (opposite direction!) = add dummy packets to small flows, mimicking browsing sessions
+- **Bot C&C:** increase packets exclusively — flood small C&C flows with dummy packets until they look like browsing sessions
+- **BruteForce:** reduce packets + increase bytes — coalesce login attempts into fewer, larger packets mimicking web traffic
+- **WebAttack:** increase packets + reduce bytes — the opposite of BruteForce, splitting payloads into many small packets
+- **DoS:** spreads across multiple actions but nothing works (1.1% evasion) — large flows can't be reshaped enough
 - **Timing:** completely unused — the classifier doesn't rely on timing features
 
 ![Action heatmap](results/figures/02_action_heatmap.png)
