@@ -1,8 +1,8 @@
 # Adversarial RL IDS Evasion
 
-**An RL agent that stress-tests ML-based intrusion detection systems by discovering evasion strategies automatically.**
+**An RL agent that red-teams ML-based intrusion detection systems by discovering evasion strategies automatically.**
 
-I trained a PPO agent to attack a [peer-reviewed Random Forest classifier](https://github.com/Western-OC2-Lab/Intrusion-Detection-System-Using-Machine-Learning) with 99.41% accuracy (573 GitHub stars, 3 IEEE papers). The agent modifies only what a real attacker controls — their own outbound traffic — and every modification must keep the malicious payload functional.
+I trained a PPO agent to attack a [peer-reviewed Random Forest classifier](https://github.com/Western-OC2-Lab/Intrusion-Detection-System-Using-Machine-Learning) with 99.41% accuracy. The agent modifies only what a real attacker controls — their own outbound traffic — and every modification must keep the malicious payload functional.
 
 The classifier's 99.41% accuracy hides attack-specific blind spots:
 
