@@ -10,11 +10,11 @@ The attacker modifies 3 base forward features. All other features are
 recalculated, proportionally scaled, or kept fixed (backward/flags/timing).
 """
 
-import gymnasium as gym
-from gymnasium import spaces
 import numpy as np
 import joblib
 import os
+
+from src.base_environment import BaseEvasionEnv
 
 # -----------------------------------------------------------------------
 # Feature indices (must match feature_names.npy from Western-OC2-Lab)
@@ -85,94 +85,29 @@ MAX_FWD_PKT_LEN = 1500  # MTU
 MAX_STEPS = 5
 
 
-class WesternOC2EvasionEnv(gym.Env):
+class WesternOC2EvasionEnv(BaseEvasionEnv):
     """RL environment: evade Western-OC2-Lab's peer-reviewed RF classifier."""
 
-    metadata = {'render_modes': []}
-
     def __init__(self, max_steps=None):
-        super().__init__()
-
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         models_dir = os.path.join(base_dir, 'models', 'western_oc2')
 
-        self.clf = joblib.load(os.path.join(models_dir, 'rf_classifier.joblib'))
+        clf = joblib.load(os.path.join(models_dir, 'rf_classifier.joblib'))
         all_flows = np.load(os.path.join(models_dir, 'malicious_flows.npy'))
 
         # Filter out tiny flows (<=40 bytes fwd payload = header-only or degenerate)
         # These inflate evasion rates because trivial byte changes (2→3) flip classification.
         fwd_bytes = all_flows[:, I['total_len_fwd_packets']]
-        self.flow_pool = all_flows[fwd_bytes > 40]
+        flow_pool = all_flows[fwd_bytes > 40]
 
-        self.max_steps = max_steps if max_steps is not None else MAX_STEPS
-
-        # Observation normalization
-        self.obs_mean = self.flow_pool.mean(axis=0).astype(np.float64)
-        self.obs_std = self.flow_pool.std(axis=0).astype(np.float64)
-        self.obs_std[self.obs_std < 1e-8] = 1.0
-
-        # Spaces: 77 normalized features + step number
-        self.observation_space = spaces.Box(
-            low=-10.0, high=10.0, shape=(N_FEATURES + 1,), dtype=np.float32
+        super().__init__(
+            clf=clf,
+            flow_pool=flow_pool,
+            n_features=N_FEATURES,
+            n_actions=len(ACTION_DEFS),
+            benign_class=BENIGN_CLASS,
+            max_steps=max_steps if max_steps is not None else MAX_STEPS,
         )
-        self.action_space = spaces.Discrete(len(ACTION_DEFS))
-
-        # Episode state
-        self.current_flow = None
-        self.original_flow = None
-        self.steps_taken = 0
-        self.prev_prob_malicious = None
-        self.np_random = None
-
-    def reset(self, seed=None, options=None):
-        super().reset(seed=seed)
-        idx = self.np_random.integers(0, len(self.flow_pool))
-        self.current_flow = self.flow_pool[idx].copy().astype(np.float64)
-        self.original_flow = self.current_flow.copy()
-        self.steps_taken = 0
-
-        proba = self.clf.predict_proba([self.current_flow])[0]
-        self.prev_prob_malicious = 1.0 - proba[BENIGN_CLASS]
-
-        return self._normalize(self.current_flow), {}
-
-    def step(self, action):
-        assert self.current_flow is not None, "Call reset() before step()"
-        self.steps_taken += 1
-
-        modified = self._apply_action(self.current_flow, action)
-        modified = self._recalculate_derived(modified)
-
-        if not self._is_valid(modified):
-            self.current_flow = modified
-            return self._normalize(modified), -0.5, True, False, {
-                'evaded': False, 'reason': 'invalid_flow', 'step': self.steps_taken
-            }
-
-        self.current_flow = modified
-
-        proba = self.clf.predict_proba([modified])[0]
-        prob_malicious = 1.0 - proba[BENIGN_CLASS]
-        evaded = proba[BENIGN_CLASS] > 0.5  # RF predicts BENIGN
-
-        is_final = self.steps_taken >= self.max_steps
-        reward = self.prev_prob_malicious - prob_malicious
-        if evaded:
-            reward += 1.0
-        elif is_final:
-            reward -= 1.0
-
-        self.prev_prob_malicious = prob_malicious
-        terminated = is_final or evaded
-
-        return self._normalize(self.current_flow), reward, terminated, False, {
-            'evaded': evaded, 'prob_malicious': prob_malicious, 'step': self.steps_taken,
-        }
-
-    def _normalize(self, flow):
-        norm = (flow - self.obs_mean) / self.obs_std
-        step_norm = self.steps_taken / self.max_steps
-        return np.append(norm, step_norm).astype(np.float32)
 
     def _apply_action(self, flow, action):
         f = flow.copy()

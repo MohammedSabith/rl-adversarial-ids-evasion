@@ -89,11 +89,38 @@ python -m src.train
 python -m src.baselines
 ```
 
+### Test Your Own Classifier
+
+The RL evasion loop is classifier-agnostic. Subclass `BaseEvasionEnv` and implement three methods:
+
+```python
+from src.base_environment import BaseEvasionEnv
+
+class MyEvasionEnv(BaseEvasionEnv):
+    def __init__(self):
+        clf = load_your_classifier()
+        flows = load_your_malicious_flows()  # shape: (n_flows, n_features)
+        super().__init__(clf, flows, n_features=..., n_actions=...,
+                         benign_class=0, max_steps=5)
+
+    def _apply_action(self, flow, action):
+        """Modify flow features. Return the modified flow."""
+
+    def _recalculate_derived(self, flow):
+        """Recompute any features derived from the modified ones."""
+
+    def _is_valid(self, flow):
+        """Return False if the modification violates physical constraints."""
+```
+
+The classifier needs a sklearn-compatible `predict_proba()` interface. The base class handles the RL loop: episode management, reward computation (`delta P(malicious)` + terminal bonuses), z-score normalization, and observation/action spaces. `train.py` and `baselines.py` are wired to the included Western-OC2-Lab environment. To train against your own, swap the env class in those files or use your subclass directly with any [Stable-Baselines3](https://github.com/DLR-RM/stable-baselines3) algorithm.
+
 ## Project Structure
 
 ```
 ├── src/
-│   ├── western_oc2_environment.py  # Gymnasium env for RL evasion (main)
+│   ├── base_environment.py         # Abstract base env (pluggable classifiers)
+│   ├── western_oc2_environment.py  # Western-OC2-Lab RF evasion env
 │   ├── train.py                    # PPO training pipeline
 │   └── baselines.py                # Random + exhaustive baselines
 ├── models/western_oc2/

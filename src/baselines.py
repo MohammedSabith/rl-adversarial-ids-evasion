@@ -8,7 +8,7 @@ Provides fair comparisons for the RL agent:
 
 import numpy as np
 from itertools import product
-from src.western_oc2_environment import WesternOC2EvasionEnv, ACTION_DEFS, I, BENIGN_CLASS
+from src.western_oc2_environment import WesternOC2EvasionEnv, ACTION_DEFS, I
 
 
 def random_baseline(n_flows=1000, attempts_per_flow=1, max_steps=5, seed=0):
@@ -118,7 +118,7 @@ def exhaustive_baseline(n_flows=500, max_steps=3, seed=0):
                 continue
 
             proba = env.clf.predict_proba([env.current_flow])[0]
-            prob = 1.0 - proba[BENIGN_CLASS]
+            prob = 1.0 - proba[env.benign_class]
             if prob < best_prob:
                 best_prob = prob
                 best_seq = seq
